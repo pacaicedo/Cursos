@@ -2,6 +2,8 @@
 
 # _Intersemestral Period 2026_
 
+## daniel.perez.ra@gmail.com
+
 ## Library versions
 
 - Python: 3.12.13 (main, Jun 23 2026, 15:18:55) [Clang 22.1.3 ]
