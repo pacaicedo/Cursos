@@ -463,7 +463,6 @@ table {
 
 ui <- fluidPage(
   tags$head(tags$style(HTML(app_css))),
-
   div(
     class = "hero",
     h1("SHAP and LIME, explained with an R psychology data set"),
@@ -475,7 +474,6 @@ ui <- fluidPage(
       "Every plot is interactive: hover over points and bars to see the values."
     )
   ),
-
   sidebarLayout(
     sidebarPanel(
       width = 3,
@@ -489,7 +487,6 @@ ui <- fluidPage(
       div(class = "mini-note", "Changing the department resets the sliders. Moving a slider creates a custom profile."),
       uiOutput("feature_sliders"),
       hr(),
-
       h3("2. Pick display features"),
       selectInput(
         "plot_x",
@@ -504,7 +501,6 @@ ui <- fluidPage(
         selected = "learning"
       ),
       hr(),
-
       h3("3. Tune LIME"),
       sliderInput("lime_n", "Perturbed profiles", min = 200, max = 3000, value = 900, step = 100),
       sliderInput("lime_kernel", "Local neighborhood width", min = 0.20, max = 4.00, value = 1.25, step = 0.05),
@@ -518,11 +514,9 @@ ui <- fluidPage(
         "Make the LIME neighborhood very small to see a highly local explanation. Make it wide to see the surrogate average over more of the model surface."
       )
     ),
-
     mainPanel(
       width = 9,
       uiOutput("metric_cards"),
-
       tabsetPanel(
         tabPanel(
           "Data and model",
@@ -537,7 +531,6 @@ ui <- fluidPage(
           ),
           div(class = "soft-card", tableOutput("current_profile_table"))
         ),
-
         tabPanel(
           "SHAP",
           div(class = "explain-card", uiOutput("shap_text")),
@@ -547,7 +540,6 @@ ui <- fluidPage(
             column(width = 5, div(class = "soft-card", tableOutput("shap_table")))
           )
         ),
-
         tabPanel(
           "LIME",
           div(class = "explain-card", uiOutput("lime_text")),
@@ -560,7 +552,6 @@ ui <- fluidPage(
             column(width = 6, div(class = "soft-card", tableOutput("lime_table")))
           )
         ),
-
         tabPanel(
           "Compare",
           div(class = "explain-card", uiOutput("compare_text")),
@@ -569,7 +560,6 @@ ui <- fluidPage(
             column(width = 6, plotlyOutput("compare_predictions", height = "430px"))
           )
         ),
-
         tabPanel(
           "Plain-English guide",
           div(
@@ -611,17 +601,20 @@ server <- function(input, output, session) {
     )
   })
 
-  observeEvent(input$selected_row, {
-    selected_idx <- as.integer(input$selected_row)
+  observeEvent(input$selected_row,
+    {
+      selected_idx <- as.integer(input$selected_row)
 
-    for (feature_name in predictor_names) {
-      updateSliderInput(
-        session,
-        inputId = paste0("val_", feature_name),
-        value = attitude_data[[feature_name]][[selected_idx]]
-      )
-    }
-  }, ignoreInit = TRUE)
+      for (feature_name in predictor_names) {
+        updateSliderInput(
+          session,
+          inputId = paste0("val_", feature_name),
+          value = attitude_data[[feature_name]][[selected_idx]]
+        )
+      }
+    },
+    ignoreInit = TRUE
+  )
 
   selected_case <- reactive({
     values_named <- vapply(
@@ -755,18 +748,23 @@ server <- function(input, output, session) {
     ))
   })
 
-  output$current_profile_table <- renderTable({
-    case_df <- selected_case()
-    data.frame(
-      Feature = unname(feature_labels[predictor_names]),
-      Variable = predictor_names,
-      `Current value` = as.numeric(case_df[1, predictor_names]),
-      `Data min` = as.numeric(feature_min[predictor_names]),
-      `Data max` = as.numeric(feature_max[predictor_names]),
-      Meaning = unname(feature_help[predictor_names]),
-      check.names = FALSE
-    )
-  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  output$current_profile_table <- renderTable(
+    {
+      case_df <- selected_case()
+      data.frame(
+        Feature = unname(feature_labels[predictor_names]),
+        Variable = predictor_names,
+        `Current value` = as.numeric(case_df[1, predictor_names]),
+        `Data min` = as.numeric(feature_min[predictor_names]),
+        `Data max` = as.numeric(feature_max[predictor_names]),
+        Meaning = unname(feature_help[predictor_names]),
+        check.names = FALSE
+      )
+    },
+    striped = TRUE,
+    bordered = TRUE,
+    spacing = "s"
+  )
 
   output$data_scatter <- renderPlotly({
     x_feature <- input$plot_x
@@ -962,17 +960,22 @@ server <- function(input, output, session) {
       )
   })
 
-  output$shap_table <- renderTable({
-    shap_df <- shap_result()$values
-    shap_df <- shap_df[order(shap_df$abs_shap, decreasing = TRUE), ]
-    data.frame(
-      Feature = shap_df$label,
-      Value = fmt(shap_df$value, 1),
-      SHAP = signed_fmt(shap_df$shap),
-      Direction = shap_df$direction,
-      check.names = FALSE
-    )
-  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  output$shap_table <- renderTable(
+    {
+      shap_df <- shap_result()$values
+      shap_df <- shap_df[order(shap_df$abs_shap, decreasing = TRUE), ]
+      data.frame(
+        Feature = shap_df$label,
+        Value = fmt(shap_df$value, 1),
+        SHAP = signed_fmt(shap_df$shap),
+        Direction = shap_df$direction,
+        check.names = FALSE
+      )
+    },
+    striped = TRUE,
+    bordered = TRUE,
+    spacing = "s"
+  )
 
   output$lime_neighborhood <- renderPlotly({
     x_feature <- input$plot_x
@@ -1128,18 +1131,23 @@ server <- function(input, output, session) {
       )
   })
 
-  output$lime_table <- renderTable({
-    lime_df <- lime_result()$contributions
-    lime_df <- lime_df[order(lime_df$abs_contribution, decreasing = TRUE), ]
-    data.frame(
-      Feature = lime_df$label,
-      `Selected value` = fmt(lime_df$selected_value, 1),
-      `Local center` = fmt(lime_df$local_center, 1),
-      `Local slope` = signed_fmt(lime_df$local_slope),
-      Contribution = signed_fmt(lime_df$contribution),
-      check.names = FALSE
-    )
-  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  output$lime_table <- renderTable(
+    {
+      lime_df <- lime_result()$contributions
+      lime_df <- lime_df[order(lime_df$abs_contribution, decreasing = TRUE), ]
+      data.frame(
+        Feature = lime_df$label,
+        `Selected value` = fmt(lime_df$selected_value, 1),
+        `Local center` = fmt(lime_df$local_center, 1),
+        `Local slope` = signed_fmt(lime_df$local_slope),
+        Contribution = signed_fmt(lime_df$contribution),
+        check.names = FALSE
+      )
+    },
+    striped = TRUE,
+    bordered = TRUE,
+    spacing = "s"
+  )
 
   output$compare_contributions <- renderPlotly({
     shap_df <- shap_result()$values[, c("feature", "label", "shap")]
@@ -1218,5 +1226,5 @@ server <- function(input, output, session) {
       )
   })
 }
-
+View(attitude)
 shinyApp(ui, server)

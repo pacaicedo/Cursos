@@ -1,0 +1,10 @@
+---
+title: "Sesión 3: Introducción a la lime and Shapley"
+date: today
+authors:
+  - name: "Ing. Pablo Eduardo Caicedo-Rodríguez"
+    affiliation: "Universidad de Escuela Colombiana de Ingeniería Julio Garavito"
+    email: "pablo.caciedo@escuelaing.edu.co"
+format: html
+---
+
